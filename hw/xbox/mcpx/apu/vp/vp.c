@@ -958,14 +958,10 @@ static int voice_get_samples(MCPXAPUState *d, uint32_t v, float samples[][2],
         segment_offset = ldl_le_phys(&address_space_memory, addr);
         segment_length = ldl_le_phys(&address_space_memory, addr + 4);
         if (segment_offset == 0 || segment_length == 0) {
-            fprintf(stderr,
-                    "[xemu/apu] SSL entry not ready: "
-                    "voice=%d ssl_index=%d ssl_seg=%d page=%d count=%d "
-                    "addr=0x%"HWADDR_PRIx" "
-                    "segment_offset=0x%"HWADDR_PRIx" "
-                    "segment_length=0x%"PRIx32"\n",
-                    v, ssl_index, ssl_seg, page, count,
-                    addr, segment_offset, segment_length);
+            // SSL entry not yet populated by guest (timing race); skip this cycle
+            DPRINTF("Voice %d: SSL entry page %d not ready "
+                    "(offset=%"HWADDR_PRIx" length=%"PRIx32")\n",
+                    v, page, segment_offset, segment_length);
             return -1;
         }
         seg_len = (segment_length >> 0) & 0xffff;
